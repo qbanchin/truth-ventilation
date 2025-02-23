@@ -80,10 +80,20 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="container max-w-3xl mx-auto px-4 py-12">
         <header className="text-center mb-12 animate-fadeIn">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Say The Truth</h1>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            A safe space to share your truths anonymously and connect with others who understand.
-          </p>
+          <h1 className="text-4xl font-bold text-foreground mb-4">Share The Truth</h1>
+          <div className="space-y-6">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              A safe and anonymous space where you can share your deepest confessions, hidden secrets, and unfiltered thoughts.
+            </p>
+            <div className="prose prose-sm max-w-2xl mx-auto text-muted-foreground">
+              <p>
+                Whether it's about relationships, personal struggles, societal pressures, or even those quirky habits you've never told anyone about, this is your platform to speak your truth without judgment. Explore heartfelt stories, bold opinions, and raw honesty from people around the world, or take the leap and share your own.
+              </p>
+              <p>
+                Here, every voice matters, and every truth has a place. Join us and be part of a community that values authenticity, connection, and the courage to be real.
+              </p>
+            </div>
+          </div>
         </header>
 
         <TruthForm onTruthSubmit={handleNewTruth} />
