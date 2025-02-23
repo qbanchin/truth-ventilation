@@ -2,29 +2,57 @@
 import { useState } from "react";
 import { HeartIcon, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Comment {
-  id: number;
-  text: string;
-  timestamp: string;
-}
+import { supabase } from "@/lib/supabase";
+import type { Comment } from "@/lib/supabase";
 
 interface ConfessionCardProps {
   id: number;
   text: string;
-  timestamp: string;
+  created_at: string;
   likes: number;
   comments: Comment[];
 }
 
-export const ConfessionCard = ({ id, text, timestamp, likes: initialLikes, comments: initialComments }: ConfessionCardProps) => {
+export const ConfessionCard = ({ id, text, created_at, likes: initialLikes, comments: initialComments }: ConfessionCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [likes, setLikes] = useState(initialLikes);
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState("");
   const { toast } = useToast();
 
-  const handleLike = () => {
+  const handleLike = async () => {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to like confessions.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('confession_likes')
+      .insert([
+        {
+          confession_id: id,
+          user_id: user.user.id,
+        }
+      ]);
+
+    if (error) {
+      if (error.code === '23505') { // Unique violation error code
+        toast({
+          title: "Already liked",
+          description: "You've already liked this confession.",
+          duration: 2000,
+        });
+        return;
+      }
+      console.error('Error liking confession:', error);
+      return;
+    }
+
     setLikes(prev => prev + 1);
     toast({
       title: "Thanks for sharing the love!",
@@ -33,17 +61,38 @@ export const ConfessionCard = ({ id, text, timestamp, likes: initialLikes, comme
     });
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
-    const comment = {
-      id: Date.now(),
-      text: newComment,
-      timestamp: new Date().toISOString(),
-    };
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to comment.",
+        duration: 3000,
+      });
+      return;
+    }
 
-    setComments(prev => [...prev, comment]);
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([
+        {
+          confession_id: id,
+          text: newComment,
+          user_id: user.user.id,
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding comment:', error);
+      return;
+    }
+
+    setComments(prev => [...prev, data]);
     setNewComment("");
     toast({
       title: "Comment added",
@@ -55,7 +104,9 @@ export const ConfessionCard = ({ id, text, timestamp, likes: initialLikes, comme
   return (
     <div className="confession-card bg-card rounded-lg shadow-sm p-6 mb-6 hover:shadow-md hover-effect">
       <div className="mb-4">
-        <p className="text-xs text-muted-foreground mb-2">{new Date(timestamp).toLocaleDateString()}</p>
+        <p className="text-xs text-muted-foreground mb-2">
+          {new Date(created_at).toLocaleDateString()}
+        </p>
         <p className="text-foreground text-lg leading-relaxed">{text}</p>
       </div>
       
@@ -100,7 +151,7 @@ export const ConfessionCard = ({ id, text, timestamp, likes: initialLikes, comme
               <div key={comment.id} className="bg-muted p-3 rounded-md">
                 <p className="text-sm mb-1">{comment.text}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(comment.timestamp).toLocaleDateString()}
+                  {new Date(comment.created_at).toLocaleDateString()}
                 </p>
               </div>
             ))}

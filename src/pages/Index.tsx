@@ -1,32 +1,83 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfessionCard } from "@/components/ConfessionCard";
 import { ConfessionForm } from "@/components/ConfessionForm";
+import { supabase } from "@/lib/supabase";
+import type { Confession } from "@/lib/supabase";
 
-interface Confession {
-  id: number;
-  text: string;
-  timestamp: string;
+interface ConfessionWithMeta extends Confession {
   likes: number;
   comments: Array<{
     id: number;
     text: string;
-    timestamp: string;
+    created_at: string;
   }>;
 }
 
 const Index = () => {
-  const [confessions, setConfessions] = useState<Confession[]>([]);
+  const [confessions, setConfessions] = useState<ConfessionWithMeta[]>([]);
 
-  const handleNewConfession = (confessionText: string) => {
-    const newConfession: Confession = {
-      id: Date.now(),
-      text: confessionText,
-      timestamp: new Date().toISOString(),
-      likes: 0,
-      comments: [],
+  useEffect(() => {
+    fetchConfessions();
+    setupSubscription();
+  }, []);
+
+  const fetchConfessions = async () => {
+    const { data, error } = await supabase
+      .from('confessions')
+      .select(`
+        *,
+        comments (id, text, created_at),
+        confession_likes (confession_id)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching confessions:', error);
+      return;
+    }
+
+    const confessionsWithMeta = data.map(confession => ({
+      ...confession,
+      likes: confession.confession_likes?.length || 0,
+      comments: confession.comments || [],
+    }));
+
+    setConfessions(confessionsWithMeta);
+  };
+
+  const setupSubscription = () => {
+    const confessionsSubscription = supabase
+      .channel('public:confessions')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'confessions' 
+      }, fetchConfessions)
+      .subscribe();
+
+    return () => {
+      confessionsSubscription.unsubscribe();
     };
-    setConfessions(prev => [newConfession, ...prev]);
+  };
+
+  const handleNewConfession = async (confessionText: string) => {
+    const { data: user } = await supabase.auth.getUser();
+    
+    const { error } = await supabase
+      .from('confessions')
+      .insert([
+        {
+          text: confessionText,
+          user_id: user.user?.id,
+          is_anonymous: true,
+        }
+      ]);
+
+    if (error) {
+      console.error('Error creating confession:', error);
+      return;
+    }
   };
 
   return (
