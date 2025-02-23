@@ -1,16 +1,14 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Retrieve environment variables with fallbacks to empty strings
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
+const supabaseUrl = 'https://zbchheswoxbjfibouiyc.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiY2hoZXN3b3hiamZpYm91aXljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzQ5NTMsImV4cCI6MjA1NTkxMDk1M30.Sg_oTC2dJj7JKm4YkZV9zFNbuXK9WyEqzHbsKV8DxiA';
 
-// Check if the values are present after initialization
 if (!supabaseUrl) {
-  console.error('Supabase URL is missing. Please check your Supabase connection.');
+  console.error('Supabase URL is missing');
 }
 if (!supabaseAnonKey) {
-  console.error('Supabase Anon Key is missing. Please check your Supabase connection.');
+  console.error('Supabase Anon Key is missing');
 }
 
 export const supabase = createClient(
