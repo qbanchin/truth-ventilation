@@ -1,17 +1,12 @@
-
 import { useEffect, useState } from "react";
 import { ConfessionCard } from "@/components/ConfessionCard";
 import { ConfessionForm } from "@/components/ConfessionForm";
 import { supabase } from "@/lib/supabase";
-import type { Confession } from "@/lib/supabase";
+import type { Confession, Comment } from "@/lib/supabase";
 
 interface ConfessionWithMeta extends Confession {
   likes: number;
-  comments: Array<{
-    id: number;
-    text: string;
-    created_at: string;
-  }>;
+  comments: Comment[];
 }
 
 const Index = () => {
@@ -27,7 +22,7 @@ const Index = () => {
       .from('confessions')
       .select(`
         *,
-        comments (id, text, created_at),
+        comments (*),
         confession_likes (confession_id)
       `)
       .order('created_at', { ascending: false });
