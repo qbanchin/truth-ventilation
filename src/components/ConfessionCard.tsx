@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import type { Comment } from "@/lib/supabase";
 
-interface ConfessionCardProps {
+interface TruthCardProps {
   id: number;
   text: string;
   created_at: string;
@@ -13,7 +13,7 @@ interface ConfessionCardProps {
   comments: Comment[];
 }
 
-export const ConfessionCard = ({ id, text, created_at, likes: initialLikes, comments: initialComments }: ConfessionCardProps) => {
+export const TruthCard = ({ id, text, created_at, likes: initialLikes, comments: initialComments }: TruthCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [likes, setLikes] = useState(initialLikes);
   const [comments, setComments] = useState<Comment[]>(initialComments);
@@ -25,17 +25,17 @@ export const ConfessionCard = ({ id, text, created_at, likes: initialLikes, comm
     if (!user.user) {
       toast({
         title: "Authentication required",
-        description: "Please sign in to like confessions.",
+        description: "Please sign in to like truths.",
         duration: 3000,
       });
       return;
     }
 
     const { error } = await supabase
-      .from('confession_likes')
+      .from('truth_likes')
       .insert([
         {
-          confession_id: id,
+          truth_id: id,
           user_id: user.user.id,
         }
       ]);
@@ -44,19 +44,19 @@ export const ConfessionCard = ({ id, text, created_at, likes: initialLikes, comm
       if (error.code === '23505') { // Unique violation error code
         toast({
           title: "Already liked",
-          description: "You've already liked this confession.",
+          description: "You've already liked this truth.",
           duration: 2000,
         });
         return;
       }
-      console.error('Error liking confession:', error);
+      console.error('Error liking truth:', error);
       return;
     }
 
     setLikes(prev => prev + 1);
     toast({
       title: "Thanks for sharing the love!",
-      description: "Your support means a lot to the confessor.",
+      description: "Your support means a lot to the truth sharer.",
       duration: 2000,
     });
   };
@@ -79,7 +79,7 @@ export const ConfessionCard = ({ id, text, created_at, likes: initialLikes, comm
       .from('comments')
       .insert([
         {
-          confession_id: id,
+          truth_id: id,
           text: newComment,
           user_id: user.user.id,
         }
@@ -102,7 +102,7 @@ export const ConfessionCard = ({ id, text, created_at, likes: initialLikes, comm
   };
 
   return (
-    <div className="confession-card bg-card rounded-lg shadow-sm p-6 mb-6 hover:shadow-md hover-effect">
+    <div className="truth-card bg-card rounded-lg shadow-sm p-6 mb-6 hover:shadow-md hover-effect">
       <div className="mb-4">
         <p className="text-xs text-muted-foreground mb-2">
           {new Date(created_at).toLocaleDateString()}

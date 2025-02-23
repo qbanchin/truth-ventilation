@@ -1,76 +1,77 @@
-import { useEffect, useState } from "react";
-import { ConfessionCard } from "@/components/ConfessionCard";
-import { ConfessionForm } from "@/components/ConfessionForm";
-import { supabase } from "@/lib/supabase";
-import type { Confession, Comment } from "@/lib/supabase";
 
-interface ConfessionWithMeta extends Confession {
+import { useEffect, useState } from "react";
+import { TruthCard } from "@/components/ConfessionCard";
+import { TruthForm } from "@/components/ConfessionForm";
+import { supabase } from "@/lib/supabase";
+import type { Truth, Comment } from "@/lib/supabase";
+
+interface TruthWithMeta extends Truth {
   likes: number;
   comments: Comment[];
 }
 
 const Index = () => {
-  const [confessions, setConfessions] = useState<ConfessionWithMeta[]>([]);
+  const [truths, setTruths] = useState<TruthWithMeta[]>([]);
 
   useEffect(() => {
-    fetchConfessions();
+    fetchTruths();
     setupSubscription();
   }, []);
 
-  const fetchConfessions = async () => {
+  const fetchTruths = async () => {
     const { data, error } = await supabase
-      .from('confessions')
+      .from('truths')
       .select(`
         *,
         comments (*),
-        confession_likes (confession_id)
+        truth_likes (truth_id)
       `)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching confessions:', error);
+      console.error('Error fetching truths:', error);
       return;
     }
 
-    const confessionsWithMeta = data.map(confession => ({
-      ...confession,
-      likes: confession.confession_likes?.length || 0,
-      comments: confession.comments || [],
+    const truthsWithMeta = data.map(truth => ({
+      ...truth,
+      likes: truth.truth_likes?.length || 0,
+      comments: truth.comments || [],
     }));
 
-    setConfessions(confessionsWithMeta);
+    setTruths(truthsWithMeta);
   };
 
   const setupSubscription = () => {
-    const confessionsSubscription = supabase
-      .channel('public:confessions')
+    const truthsSubscription = supabase
+      .channel('public:truths')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'confessions' 
-      }, fetchConfessions)
+        table: 'truths' 
+      }, fetchTruths)
       .subscribe();
 
     return () => {
-      confessionsSubscription.unsubscribe();
+      truthsSubscription.unsubscribe();
     };
   };
 
-  const handleNewConfession = async (confessionText: string) => {
+  const handleNewTruth = async (truthText: string) => {
     const { data: user } = await supabase.auth.getUser();
     
     const { error } = await supabase
-      .from('confessions')
+      .from('truths')
       .insert([
         {
-          text: confessionText,
+          text: truthText,
           user_id: user.user?.id,
           is_anonymous: true,
         }
       ]);
 
     if (error) {
-      console.error('Error creating confession:', error);
+      console.error('Error creating truth:', error);
       return;
     }
   };
@@ -81,23 +82,23 @@ const Index = () => {
         <header className="text-center mb-12 animate-fadeIn">
           <h1 className="text-4xl font-bold text-foreground mb-4">Say The Truth</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            A safe space to share your confessions anonymously and connect with others who understand.
+            A safe space to share your truths anonymously and connect with others who understand.
           </p>
         </header>
 
-        <ConfessionForm onConfessionSubmit={handleNewConfession} />
+        <TruthForm onTruthSubmit={handleNewTruth} />
 
         <div className="space-y-6">
-          {confessions.map((confession) => (
-            <ConfessionCard
-              key={confession.id}
-              {...confession}
+          {truths.map((truth) => (
+            <TruthCard
+              key={truth.id}
+              {...truth}
             />
           ))}
 
-          {confessions.length === 0 && (
+          {truths.length === 0 && (
             <div className="text-center py-12 text-muted-foreground animate-fadeIn">
-              <p>No confessions yet. Be the first to share your truth.</p>
+              <p>No truths yet. Be the first to share your truth.</p>
             </div>
           )}
         </div>

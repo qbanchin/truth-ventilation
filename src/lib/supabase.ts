@@ -22,7 +22,7 @@ export const supabase = createClient(
   }
 );
 
-export type Confession = {
+export type Truth = {
   id: number;
   text: string;
   user_id: string;
@@ -32,7 +32,7 @@ export type Confession = {
 
 export type Comment = {
   id: number;
-  confession_id: number;
+  truth_id: number;
   text: string;
   user_id: string;
   created_at: string;
