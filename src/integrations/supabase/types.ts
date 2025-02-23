@@ -9,7 +9,88 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          created_at: string
+          id: number
+          text: string
+          truth_id: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          text: string
+          truth_id?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          text?: string
+          truth_id?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_truth_id_fkey"
+            columns: ["truth_id"]
+            isOneToOne: false
+            referencedRelation: "truths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      truth_likes: {
+        Row: {
+          created_at: string
+          truth_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          truth_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          truth_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "truth_likes_truth_id_fkey"
+            columns: ["truth_id"]
+            isOneToOne: false
+            referencedRelation: "truths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      truths: {
+        Row: {
+          created_at: string
+          id: number
+          is_anonymous: boolean | null
+          text: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          is_anonymous?: boolean | null
+          text: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          is_anonymous?: boolean | null
+          text?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

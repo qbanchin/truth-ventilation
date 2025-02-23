@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
-import { TruthCard } from "@/components/ConfessionCard";
-import { TruthForm } from "@/components/ConfessionForm";
+import { TruthCard } from "@/components/TruthCard";
+import { TruthForm } from "@/components/TruthForm";
 import { supabase } from "@/lib/supabase";
 import type { Truth, Comment } from "@/lib/supabase";
 
