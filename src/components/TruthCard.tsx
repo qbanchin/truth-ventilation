@@ -20,22 +20,13 @@ export const TruthCard = ({
   const { toast } = useToast();
 
   const handleLike = async () => {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to like truths.",
-        duration: 3000,
-      });
-      return;
-    }
-
     const { error } = await supabase
       .from('truth_likes')
       .insert([
         {
           truth_id: id,
-          user_id: user.user.id,
+          // Set a default anonymous user ID since we don't have auth yet
+          user_id: '00000000-0000-0000-0000-000000000000',
         }
       ]);
 
@@ -43,7 +34,7 @@ export const TruthCard = ({
       if (error.code === '23505') {
         toast({
           title: "Already liked",
-          description: "You've already liked this truth.",
+          description: "This truth has already been liked.",
           duration: 2000,
         });
         return;

@@ -20,23 +20,14 @@ export const CommentList = ({ truthId, initialComments }: CommentListProps) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to comment.",
-        duration: 3000,
-      });
-      return;
-    }
-
     const { data, error } = await supabase
       .from('comments')
       .insert([
         {
           truth_id: truthId,
           text: newComment,
-          user_id: user.user.id,
+          // Set a default anonymous user ID since we don't have auth yet
+          user_id: '00000000-0000-0000-0000-000000000000',
         }
       ])
       .select()
@@ -44,6 +35,12 @@ export const CommentList = ({ truthId, initialComments }: CommentListProps) => {
 
     if (error) {
       console.error('Error adding comment:', error);
+      toast({
+        title: "Error",
+        description: "Could not add your comment. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
       return;
     }
 
