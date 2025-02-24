@@ -6,16 +6,60 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Function to check for links
-const containsLinks = (text: string): boolean => {
-  const urlRegex = /(http:\/\/|https:\/\/|www\.)[^\s]+/g;
-  return urlRegex.test(text);
+// Enhanced spam detection patterns
+const spamPatterns = {
+  repeatedCharacters: /(.)\1{4,}/,  // Detects characters repeated more than 4 times
+  excessiveCaps: /[A-Z]{4,}/,  // Detects 4 or more consecutive capital letters
+  urls: /(http:\/\/|https:\/\/|www\.)[^\s]+/g,
+  suspiciousPatterns: [
+    /\$\$\$/, // Money symbols
+    /\d{4,}/, // Long number sequences
+    /[!?]{3,}/, // Excessive punctuation
+    /buy|sell|discount|offer|cheap|free|guarantee|limited time|act now|click here|buy now|order now|bonus|100% free|satisfaction guaranteed/i,
+    /\b(crypto|bitcoin|btc|eth|nft)\b/i,
+    /\b(casino|poker|betting|gambling)\b/i,
+    /\b(v[1|i]agra|c[1|i]al[1|i]s)\b/i,
+    /\b(weight loss|diet|slim|lean)\b/i
+  ]
 };
+
+function isSpam(text: string): { isSpam: boolean; reason?: string } {
+  // Check for repeated characters (potential keyboard spam)
+  if (spamPatterns.repeatedCharacters.test(text)) {
+    return { isSpam: true, reason: "Excessive repeated characters detected" };
+  }
+
+  // Check for excessive caps (shouting)
+  if (spamPatterns.excessiveCaps.test(text)) {
+    return { isSpam: true, reason: "Excessive capital letters detected" };
+  }
+
+  // Check for URLs
+  if (spamPatterns.urls.test(text)) {
+    return { isSpam: true, reason: "URLs are not allowed" };
+  }
+
+  // Check for suspicious patterns
+  for (const pattern of spamPatterns.suspiciousPatterns) {
+    if (pattern.test(text)) {
+      return { isSpam: true, reason: "Suspicious content detected" };
+    }
+  }
+
+  // Rate of special characters
+  const specialCharRatio = (text.match(/[^a-zA-Z0-9\s]/g) || []).length / text.length;
+  if (specialCharRatio > 0.3) {  // More than 30% special characters
+    return { isSpam: true, reason: "Too many special characters" };
+  }
+
+  return { isSpam: false };
+}
 
 // Function to check for inappropriate content
 const containsInappropriateContent = (text: string): boolean => {
   const inappropriateWords = [
-    'porn', 'xxx', 'sex', 'nude', 'naked', 'spam'
+    'porn', 'xxx', 'sex', 'nude', 'naked', 'spam', 'scam',
+    'phishing', 'hack', 'crack', 'warez', 'torrent'
   ];
   const lowerText = text.toLowerCase();
   return inappropriateWords.some(word => lowerText.includes(word));
@@ -61,13 +105,14 @@ serve(async (req) => {
   try {
     const { text } = await req.json();
 
-    // Check for links
-    if (containsLinks(text)) {
+    // Check for spam first
+    const spamCheck = isSpam(text);
+    if (spamCheck.isSpam) {
       return new Response(
         JSON.stringify({
           result: JSON.stringify({
-            correction: "Links are not allowed",
-            explanation: "For security reasons, we don't allow sharing links in truths."
+            correction: "Content blocked",
+            explanation: `This content has been identified as potential spam: ${spamCheck.reason}`
           })
         }), 
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -79,8 +124,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           result: JSON.stringify({
-            correction: "Inappropriate content detected",
-            explanation: "This content violates our community guidelines. Please keep posts appropriate and respectful."
+            correction: "Content violates guidelines",
+            explanation: "This content contains inappropriate material. Please keep posts appropriate and respectful."
           })
         }), 
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
