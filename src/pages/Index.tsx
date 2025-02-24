@@ -87,6 +87,27 @@ const Index = () => {
     }
   };
 
+  const addCorrectiveComment = async (truthId: number, correction: string, explanation: string) => {
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([
+        {
+          truth_id: truthId,
+          text: `Fact Check: ${correction}\n\nExplanation: ${explanation}`,
+          is_fact_check: true,
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding corrective comment:', error);
+      return null;
+    }
+
+    return data;
+  };
+
   const handleNewTruth = async (truthText: string) => {
     // First, fact-check the truth
     const factCheckResult = await factCheckTruth(truthText);
@@ -100,15 +121,24 @@ const Index = () => {
         
         // Show a warning toast with the correction
         toast({
-          title: "Fact Check Alert",
+          title: "Content Review Alert",
           description: factCheckData.explanation,
           variant: "destructive",
           duration: 6000,
         });
+
+        if (factCheckData.correction === "Links are not allowed" || 
+            factCheckData.correction === "Inappropriate content detected" ||
+            factCheckData.correction === "Content violates guidelines") {
+          shouldProceed = false;
+          return; // Don't post the truth if it contains inappropriate content
+        }
       } catch (e) {
         console.error('Error parsing fact check result:', e);
       }
     }
+
+    if (!shouldProceed) return;
 
     const { data: userData } = await supabase.auth.getUser();
     
@@ -131,10 +161,19 @@ const Index = () => {
       }
 
       if (data) {
+        // If false information was detected, add a corrective comment
+        let comments: Comment[] = [];
+        if (correction) {
+          const comment = await addCorrectiveComment(data.id, correction.correction, correction.explanation);
+          if (comment) {
+            comments = [comment];
+          }
+        }
+
         setTruths(prev => [{
           ...data,
           likes: 0,
-          comments: [],
+          comments,
           factCheck: correction,
         }, ...prev]);
       }
@@ -158,10 +197,19 @@ const Index = () => {
       }
 
       if (data) {
+        // If false information was detected, add a corrective comment
+        let comments: Comment[] = [];
+        if (correction) {
+          const comment = await addCorrectiveComment(data.id, correction.correction, correction.explanation);
+          if (comment) {
+            comments = [comment];
+          }
+        }
+
         setTruths(prev => [{
           ...data,
           likes: 0,
-          comments: [],
+          comments,
           factCheck: correction,
         }, ...prev]);
       }
