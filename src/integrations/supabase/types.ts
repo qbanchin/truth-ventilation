@@ -73,6 +73,7 @@ export type Database = {
           fact_check: Json | null
           id: number
           is_anonymous: boolean | null
+          is_spam: boolean | null
           text: string
           user_id: string | null
         }
@@ -81,6 +82,7 @@ export type Database = {
           fact_check?: Json | null
           id?: never
           is_anonymous?: boolean | null
+          is_spam?: boolean | null
           text: string
           user_id?: string | null
         }
@@ -89,6 +91,7 @@ export type Database = {
           fact_check?: Json | null
           id?: never
           is_anonymous?: boolean | null
+          is_spam?: boolean | null
           text?: string
           user_id?: string | null
         }
@@ -99,7 +102,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_text_spam: {
+        Args: {
+          text_content: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
