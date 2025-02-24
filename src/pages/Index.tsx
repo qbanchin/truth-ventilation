@@ -31,6 +31,7 @@ const Index = () => {
         comments (*),
         truth_likes (truth_id)
       `)
+      .eq('is_spam', false)  // Only fetch non-spam posts
       .order('created_at', { ascending: false });
 
     if (error) {

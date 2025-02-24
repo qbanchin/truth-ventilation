@@ -28,6 +28,7 @@ export type Truth = {
   user_id: string;
   created_at: string;
   is_anonymous: boolean;
+  is_spam?: boolean;
 };
 
 export type Comment = {
@@ -38,4 +39,3 @@ export type Comment = {
   created_at: string;
   is_fact_check?: boolean;
 };
-
