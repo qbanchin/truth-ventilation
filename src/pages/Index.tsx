@@ -80,7 +80,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="container max-w-3xl mx-auto px-4 py-12">
         <header className="text-center mb-12 animate-fadeIn">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Share The Truth</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-4">Say The Truth</h1>
           <div className="space-y-6">
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               A safe and anonymous space where you can share your deepest confessions, hidden secrets, and unfiltered thoughts.
