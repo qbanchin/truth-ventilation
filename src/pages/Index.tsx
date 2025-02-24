@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { TruthCard } from "@/components/TruthCard";
 import { TruthForm } from "@/components/TruthForm";
@@ -93,7 +92,7 @@ const Index = () => {
       .insert([
         {
           truth_id: truthId,
-          text: `Fact Check: ${correction}\n\nExplanation: ${explanation}`,
+          text: `${correction}\n\n${explanation}`,
           is_fact_check: true,
         }
       ])
@@ -140,79 +139,46 @@ const Index = () => {
 
     if (!shouldProceed) return;
 
+    // Create the truth
     const { data: userData } = await supabase.auth.getUser();
-    
-    if (!userData.user) {
-      const { data, error } = await supabase
-        .from('truths')
-        .insert([
-          {
-            text: truthText,
-            is_anonymous: true,
-            fact_check: correction ? JSON.stringify(correction) : null,
-          }
-        ])
-        .select()
-        .single();
+    const truthData = {
+      text: truthText,
+      is_anonymous: true,
+      fact_check: correction ? JSON.stringify(correction) : null,
+      ...(userData.user ? { user_id: userData.user.id } : {}),
+    };
 
-      if (error) {
-        console.error('Error creating truth:', error);
-        return;
-      }
+    const { data, error } = await supabase
+      .from('truths')
+      .insert([truthData])
+      .select()
+      .single();
 
-      if (data) {
-        // If false information was detected, add a corrective comment
-        let comments: Comment[] = [];
-        if (correction) {
-          const comment = await addCorrectiveComment(data.id, correction.correction, correction.explanation);
-          if (comment) {
-            comments = [comment];
-          }
+    if (error) {
+      console.error('Error creating truth:', error);
+      return;
+    }
+
+    if (data) {
+      // If false information was detected, add a corrective comment
+      let comments: Comment[] = [];
+      if (correction) {
+        const comment = await addCorrectiveComment(
+          data.id,
+          correction.correction,
+          correction.explanation
+        );
+        if (comment) {
+          comments = [comment];
         }
-
-        setTruths(prev => [{
-          ...data,
-          likes: 0,
-          comments,
-          factCheck: correction,
-        }, ...prev]);
-      }
-    } else {
-      const { data, error } = await supabase
-        .from('truths')
-        .insert([
-          {
-            text: truthText,
-            user_id: userData.user.id,
-            is_anonymous: true,
-            fact_check: correction ? JSON.stringify(correction) : null,
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating truth:', error);
-        return;
       }
 
-      if (data) {
-        // If false information was detected, add a corrective comment
-        let comments: Comment[] = [];
-        if (correction) {
-          const comment = await addCorrectiveComment(data.id, correction.correction, correction.explanation);
-          if (comment) {
-            comments = [comment];
-          }
-        }
-
-        setTruths(prev => [{
-          ...data,
-          likes: 0,
-          comments,
-          factCheck: correction,
-        }, ...prev]);
-      }
+      setTruths(prev => [{
+        ...data,
+        likes: 0,
+        comments,
+        factCheck: correction,
+      }, ...prev]);
     }
   };
 

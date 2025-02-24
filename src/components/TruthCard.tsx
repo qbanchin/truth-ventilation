@@ -25,7 +25,7 @@ export const TruthCard = ({
   comments: initialComments,
   factCheck 
 }: TruthCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(true); // Changed to default to true
+  const [isExpanded, setIsExpanded] = useState(true);
   const [likes, setLikes] = useState(initialLikes);
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState("");

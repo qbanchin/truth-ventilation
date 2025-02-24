@@ -36,4 +36,6 @@ export type Comment = {
   text: string;
   user_id: string;
   created_at: string;
+  is_fact_check?: boolean;
 };
+
