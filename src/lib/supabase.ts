@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import type { Comment } from '@/types/truth';
 
 const supabaseUrl = 'https://zbchheswoxbjfibouiyc.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiY2hoZXN3b3hiamZpYm91aXljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzQ5NTMsImV4cCI6MjA1NTkxMDk1M30.Sg_oTC2dJj7JKm4YkZV9zFNbuXK9WyEqzHbsKV8DxiA';
@@ -29,13 +30,6 @@ export type Truth = {
   created_at: string;
   is_anonymous: boolean;
   is_spam?: boolean;
+  fact_check?: string;
 };
 
-export type Comment = {
-  id: number;
-  truth_id: number;
-  text: string;
-  user_id: string;
-  created_at: string;
-  is_fact_check?: boolean;
-};

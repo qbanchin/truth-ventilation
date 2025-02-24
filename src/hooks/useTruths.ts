@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import type { Truth, Comment } from "@/lib/supabase";
+import type { Truth } from "@/lib/supabase";
+import type { Comment } from "@/types/truth";
 
 export interface TruthWithMeta extends Truth {
   likes: number;
