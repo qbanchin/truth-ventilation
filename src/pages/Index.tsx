@@ -1,3 +1,4 @@
+
 import { TruthCard } from "@/components/TruthCard";
 import { TruthForm } from "@/components/TruthForm";
 import TruthHeader from "@/components/TruthHeader";
@@ -5,6 +6,7 @@ import { useTruths } from "@/hooks/useTruths";
 import { factCheckTruth, addCorrectiveComment } from "@/utils/factCheck";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import type { Comment } from "@/types/truth";
 import {
   Pagination,
   PaginationContent,
