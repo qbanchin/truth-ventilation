@@ -25,7 +25,7 @@ export const TruthCard = ({
   comments: initialComments,
   factCheck 
 }: TruthCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Changed to default to true
   const [likes, setLikes] = useState(initialLikes);
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState("");
@@ -113,7 +113,7 @@ export const TruthCard = ({
   };
 
   return (
-    <div className="truth-card bg-card rounded-lg shadow-sm p-6 mb-6 hover:shadow-md hover-effect">
+    <div className="truth-card bg-card rounded-lg shadow-sm p-6 mb-6 hover:shadow-md transition-shadow">
       <div className="mb-4">
         <p className="text-xs text-muted-foreground mb-2">
           {new Date(created_at).toLocaleDateString()}
@@ -139,7 +139,7 @@ export const TruthCard = ({
       <div className="flex items-center gap-4 mb-4">
         <button 
           onClick={handleLike}
-          className="flex items-center gap-2 text-muted-foreground hover:text-primary hover-effect"
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
         >
           <HeartIcon size={18} />
           <span className="text-sm">{likes}</span>
@@ -147,7 +147,7 @@ export const TruthCard = ({
         
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 text-muted-foreground hover:text-primary hover-effect"
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
         >
           <MessageCircle size={18} />
           <span className="text-sm">{comments.length}</span>
@@ -166,7 +166,7 @@ export const TruthCard = ({
             />
             <button 
               type="submit"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 hover-effect"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity"
             >
               Comment
             </button>
@@ -174,8 +174,16 @@ export const TruthCard = ({
 
           <div className="space-y-3">
             {comments.map(comment => (
-              <div key={comment.id} className="bg-muted p-3 rounded-md">
-                <p className="text-sm mb-1">{comment.text}</p>
+              <div 
+                key={comment.id} 
+                className={`p-3 rounded-md ${comment.is_fact_check ? 'bg-destructive/10 border border-destructive/20' : 'bg-muted'}`}
+              >
+                <p className="text-sm mb-1">
+                  {comment.is_fact_check && (
+                    <span className="font-medium text-destructive">Fact Check: </span>
+                  )}
+                  {comment.text}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {new Date(comment.created_at).toLocaleDateString()}
                 </p>
