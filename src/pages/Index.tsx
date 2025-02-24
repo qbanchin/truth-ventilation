@@ -45,6 +45,7 @@ const Index = () => {
       ...truth,
       likes: truth.truth_likes?.length || 0,
       comments: truth.comments || [],
+      factCheck: truth.fact_check ? JSON.parse(truth.fact_check as string) : undefined,
     }));
 
     setTruths(truthsWithMeta);
@@ -70,15 +71,15 @@ const Index = () => {
 
   const factCheckTruth = async (text: string) => {
     try {
-      const response = await fetch('/api/fact-check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text }),
+      const { data, error } = await supabase.functions.invoke('fact-check', {
+        body: { text }
       });
 
-      const data = await response.json();
+      if (error) {
+        console.error('Error calling fact-check function:', error);
+        return null;
+      }
+
       return data.result;
     } catch (error) {
       console.error('Error fact-checking truth:', error);
