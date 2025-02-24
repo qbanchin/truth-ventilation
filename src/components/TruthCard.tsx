@@ -3,7 +3,16 @@ import { useState } from "react";
 import { HeartIcon, MessageCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import type { Comment } from "@/lib/supabase";
+
+interface Comment {
+  id: number;
+  text: string;
+  created_at: string;
+  truth_id: number;
+  user_id: string;
+  is_spam: boolean;
+  is_fact_check?: boolean;
+}
 
 interface TruthCardProps {
   id: number;
