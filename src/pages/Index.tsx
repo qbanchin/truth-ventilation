@@ -33,6 +33,8 @@ const Index = () => {
       return;
     }
 
+    if (!data) return;
+
     const truthsWithMeta = data.map(truth => ({
       ...truth,
       likes: truth.truth_likes?.length || 0,
@@ -49,7 +51,10 @@ const Index = () => {
         event: '*', 
         schema: 'public', 
         table: 'truths' 
-      }, fetchTruths)
+      }, payload => {
+        console.log('Received real-time update:', payload);
+        fetchTruths();
+      })
       .subscribe();
 
     return () => {
@@ -58,21 +63,60 @@ const Index = () => {
   };
 
   const handleNewTruth = async (truthText: string) => {
-    const { data: user } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
-    const { error } = await supabase
-      .from('truths')
-      .insert([
-        {
-          text: truthText,
-          user_id: user.user?.id,
-          is_anonymous: true,
-        }
-      ]);
+    if (!userData.user) {
+      // For now, allow anonymous posts without requiring login
+      const { data, error } = await supabase
+        .from('truths')
+        .insert([
+          {
+            text: truthText,
+            is_anonymous: true,
+          }
+        ])
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating truth:', error);
-      return;
+      if (error) {
+        console.error('Error creating truth:', error);
+        return;
+      }
+
+      // Manually update the UI with the new truth
+      if (data) {
+        setTruths(prev => [{
+          ...data,
+          likes: 0,
+          comments: [],
+        }, ...prev]);
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('truths')
+        .insert([
+          {
+            text: truthText,
+            user_id: userData.user.id,
+            is_anonymous: true,
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating truth:', error);
+        return;
+      }
+
+      // Manually update the UI with the new truth
+      if (data) {
+        setTruths(prev => [{
+          ...data,
+          likes: 0,
+          comments: [],
+        }, ...prev]);
+      }
     }
   };
 
