@@ -1,4 +1,3 @@
-
 import { TruthCard } from "@/components/TruthCard";
 import { TruthForm } from "@/components/TruthForm";
 import TruthHeader from "@/components/TruthHeader";
@@ -6,10 +5,22 @@ import { useTruths } from "@/hooks/useTruths";
 import { factCheckTruth, addCorrectiveComment } from "@/utils/factCheck";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const Index = () => {
-  const { truths, setTruths } = useTruths();
+  const { truths, setTruths, currentPage, totalPages, fetchTruths } = useTruths();
   const { toast } = useToast();
+
+  const handlePageChange = (page: number) => {
+    fetchTruths(page);
+  };
 
   const handleNewTruth = async (truthText: string) => {
     const factCheckResult = await factCheckTruth(truthText);
@@ -105,6 +116,40 @@ const Index = () => {
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                
+                {[...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i + 1}>
+                    <PaginationLink
+                      onClick={() => handlePageChange(i + 1)}
+                      isActive={currentPage === i + 1}
+                      className="cursor-pointer"
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </div>
   );

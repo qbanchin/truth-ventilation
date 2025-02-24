@@ -14,8 +14,21 @@ export interface TruthWithMeta extends Truth {
 
 export const useTruths = () => {
   const [truths, setTruths] = useState<TruthWithMeta[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const postsPerPage = 10;
 
-  const fetchTruths = async () => {
+  const fetchTruths = async (page = 1) => {
+    // First, get the total count
+    const { count } = await supabase
+      .from('truths')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_spam', false);
+
+    const totalCount = count || 0;
+    setTotalPages(Math.ceil(totalCount / postsPerPage));
+
+    // Then fetch the paginated data
     const { data, error } = await supabase
       .from('truths')
       .select(`
@@ -24,7 +37,8 @@ export const useTruths = () => {
         truth_likes (truth_id)
       `)
       .eq('is_spam', false)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range((page - 1) * postsPerPage, page * postsPerPage - 1);
 
     if (error) {
       console.error('Error fetching truths:', error);
@@ -43,6 +57,7 @@ export const useTruths = () => {
     }));
 
     setTruths(truthsWithMeta);
+    setCurrentPage(page);
   };
 
   const setupSubscription = () => {
@@ -56,7 +71,7 @@ export const useTruths = () => {
         console.log('Received real-time update:', payload);
         const newData = payload.new as Truth;
         if (!newData?.is_spam) {
-          fetchTruths();
+          fetchTruths(currentPage);
         }
       })
       .subscribe();
@@ -74,6 +89,8 @@ export const useTruths = () => {
   return {
     truths,
     setTruths,
+    currentPage,
+    totalPages,
     fetchTruths
   };
 };
