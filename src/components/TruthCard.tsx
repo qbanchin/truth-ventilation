@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { HeartIcon, MessageCircle } from "lucide-react";
+import { HeartIcon, MessageCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import type { Comment } from "@/lib/supabase";
@@ -10,9 +11,20 @@ interface TruthCardProps {
   created_at: string;
   likes: number;
   comments: Comment[];
+  factCheck?: {
+    correction?: string;
+    explanation?: string;
+  };
 }
 
-export const TruthCard = ({ id, text, created_at, likes: initialLikes, comments: initialComments }: TruthCardProps) => {
+export const TruthCard = ({ 
+  id, 
+  text, 
+  created_at, 
+  likes: initialLikes, 
+  comments: initialComments,
+  factCheck 
+}: TruthCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [likes, setLikes] = useState(initialLikes);
   const [comments, setComments] = useState<Comment[]>(initialComments);
@@ -107,6 +119,21 @@ export const TruthCard = ({ id, text, created_at, likes: initialLikes, comments:
           {new Date(created_at).toLocaleDateString()}
         </p>
         <p className="text-foreground text-lg leading-relaxed">{text}</p>
+        
+        {factCheck && (
+          <div className="mt-4 p-4 bg-destructive/10 rounded-md border border-destructive/20">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-destructive">Fact Check</p>
+                <p className="text-sm text-muted-foreground mt-1">{factCheck.explanation}</p>
+                {factCheck.correction && (
+                  <p className="text-sm font-medium mt-2">Correction: {factCheck.correction}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       <div className="flex items-center gap-4 mb-4">

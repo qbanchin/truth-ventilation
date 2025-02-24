@@ -4,14 +4,20 @@ import { TruthCard } from "@/components/TruthCard";
 import { TruthForm } from "@/components/TruthForm";
 import { supabase } from "@/lib/supabase";
 import type { Truth, Comment } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface TruthWithMeta extends Truth {
   likes: number;
   comments: Comment[];
+  factCheck?: {
+    correction?: string;
+    explanation?: string;
+  };
 }
 
 const Index = () => {
   const [truths, setTruths] = useState<TruthWithMeta[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchTruths();
@@ -62,17 +68,57 @@ const Index = () => {
     };
   };
 
+  const factCheckTruth = async (text: string) => {
+    try {
+      const response = await fetch('/api/fact-check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+      return data.result;
+    } catch (error) {
+      console.error('Error fact-checking truth:', error);
+      return null;
+    }
+  };
+
   const handleNewTruth = async (truthText: string) => {
+    // First, fact-check the truth
+    const factCheckResult = await factCheckTruth(truthText);
+    let shouldProceed = true;
+    let correction = null;
+
+    if (factCheckResult && factCheckResult !== 'VERIFIED') {
+      try {
+        const factCheckData = JSON.parse(factCheckResult);
+        correction = factCheckData;
+        
+        // Show a warning toast with the correction
+        toast({
+          title: "Fact Check Alert",
+          description: factCheckData.explanation,
+          variant: "destructive",
+          duration: 6000,
+        });
+      } catch (e) {
+        console.error('Error parsing fact check result:', e);
+      }
+    }
+
     const { data: userData } = await supabase.auth.getUser();
     
     if (!userData.user) {
-      // For now, allow anonymous posts without requiring login
       const { data, error } = await supabase
         .from('truths')
         .insert([
           {
             text: truthText,
             is_anonymous: true,
+            fact_check: correction ? JSON.stringify(correction) : null,
           }
         ])
         .select()
@@ -83,12 +129,12 @@ const Index = () => {
         return;
       }
 
-      // Manually update the UI with the new truth
       if (data) {
         setTruths(prev => [{
           ...data,
           likes: 0,
           comments: [],
+          factCheck: correction,
         }, ...prev]);
       }
     } else {
@@ -99,6 +145,7 @@ const Index = () => {
             text: truthText,
             user_id: userData.user.id,
             is_anonymous: true,
+            fact_check: correction ? JSON.stringify(correction) : null,
           }
         ])
         .select()
@@ -109,12 +156,12 @@ const Index = () => {
         return;
       }
 
-      // Manually update the UI with the new truth
       if (data) {
         setTruths(prev => [{
           ...data,
           likes: 0,
           comments: [],
+          factCheck: correction,
         }, ...prev]);
       }
     }
@@ -131,7 +178,7 @@ const Index = () => {
             </p>
             <div className="prose prose-sm max-w-2xl mx-auto text-muted-foreground">
               <p>
-                Whether it's about relationships, personal struggles, societal pressures, or even those quirky habits you've never told anyone about, this is your platform to speak your truth without judgment. Explore heartfelt stories, bold opinions, and raw honesty from people around the world, or take the leap and share your own.
+                Whether it's about relationships, personal struggles, societal pressures, or even those quirky habits you've never told anyone about, this is your platform to speak your truth without judgment. AI-powered fact-checking helps ensure shared information is accurate and reliable.
               </p>
               <p>
                 Here, every voice matters, and every truth has a place. Join us and be part of a community that values authenticity, connection, and the courage to be real.
