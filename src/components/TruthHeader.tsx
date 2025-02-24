@@ -9,7 +9,7 @@ const TruthHeader = () => {
         </p>
         <div className="prose prose-sm max-w-2xl mx-auto text-muted-foreground">
           <p>
-            Whether it's about relationships, personal struggles, societal pressures, or even those quirky habits you've never told anyone about, this is your platform to speak your truth without judgment. AI-powered fact-checking helps ensure shared information is accurate and reliable.
+            Whether it's about relationships, personal struggles, societal pressures, or even those quirky habits you've never told anyone about, this is your platform to speak your truth without judgment.
           </p>
           <p>
             Here, every voice matters, and every truth has a place. Join us and be part of a community that values authenticity, connection, and the courage to be real.
