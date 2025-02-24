@@ -27,7 +27,9 @@ export const TruthCard = ({
 }: TruthCardProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [likes, setLikes] = useState(initialLikes);
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [comments, setComments] = useState<Comment[]>(
+    initialComments.filter(comment => !comment.is_spam)
+  );
   const [newComment, setNewComment] = useState("");
   const { toast } = useToast();
 
@@ -103,13 +105,23 @@ export const TruthCard = ({
       return;
     }
 
-    setComments(prev => [...prev, data]);
-    setNewComment("");
-    toast({
-      title: "Comment added",
-      description: "Your thoughts have been shared.",
-      duration: 2000,
-    });
+    if (data && !data.is_spam) {
+      setComments(prev => [...prev, data]);
+      setNewComment("");
+      toast({
+        title: "Comment added",
+        description: "Your thoughts have been shared.",
+        duration: 2000,
+      });
+    } else if (data?.is_spam) {
+      setNewComment("");
+      toast({
+        title: "Comment not allowed",
+        description: "Your comment was flagged as inappropriate. Please try again with different wording.",
+        variant: "destructive",
+        duration: 4000,
+      });
+    }
   };
 
   return (
