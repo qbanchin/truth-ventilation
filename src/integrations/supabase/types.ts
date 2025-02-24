@@ -70,6 +70,7 @@ export type Database = {
       truths: {
         Row: {
           created_at: string
+          fact_check: Json | null
           id: number
           is_anonymous: boolean | null
           text: string
@@ -77,6 +78,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          fact_check?: Json | null
           id?: never
           is_anonymous?: boolean | null
           text: string
@@ -84,6 +86,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          fact_check?: Json | null
           id?: never
           is_anonymous?: boolean | null
           text?: string
