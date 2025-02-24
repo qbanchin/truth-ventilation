@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { TruthCard } from "@/components/TruthCard";
 import { TruthForm } from "@/components/TruthForm";
@@ -41,7 +42,10 @@ const Index = () => {
 
     if (!data) return;
 
-    const truthsWithMeta = data.map(truth => ({
+    // Additional safety check to filter out any spam posts that might have slipped through
+    const nonSpamTruths = data.filter(truth => !truth.is_spam);
+
+    const truthsWithMeta = nonSpamTruths.map(truth => ({
       ...truth,
       likes: truth.truth_likes?.length || 0,
       comments: truth.comments || [],
@@ -60,7 +64,10 @@ const Index = () => {
         table: 'truths' 
       }, payload => {
         console.log('Received real-time update:', payload);
-        fetchTruths();
+        // Only fetch new truths if the updated truth is not spam
+        if (!payload.new?.is_spam) {
+          fetchTruths();
+        }
       })
       .subscribe();
 
@@ -146,6 +153,7 @@ const Index = () => {
       text: truthText,
       is_anonymous: true,
       fact_check: correction ? JSON.stringify(correction) : null,
+      is_spam: false, // Explicitly set is_spam to false for new posts
       ...(userData.user ? { user_id: userData.user.id } : {}),
     };
 
@@ -174,12 +182,15 @@ const Index = () => {
         }
       }
 
-      setTruths(prev => [{
-        ...data,
-        likes: 0,
-        comments,
-        factCheck: correction,
-      }, ...prev]);
+      // Only add to local state if not spam
+      if (!data.is_spam) {
+        setTruths(prev => [{
+          ...data,
+          likes: 0,
+          comments,
+          factCheck: correction,
+        }, ...prev]);
+      }
     }
   };
 
