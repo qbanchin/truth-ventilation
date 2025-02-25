@@ -28,25 +28,18 @@ const knownFalsehoods = [
     correction: "COVID-19 is a real and serious disease",
     explanation: "COVID-19 is a well-documented infectious disease that has affected millions worldwide, backed by extensive scientific research and medical evidence."
   },
-  // Adding water temperature facts
+  // Water temperature facts with more flexible pattern matching
   {
-    pattern: /water freezes at (?!32\s*[°˚]?F|0\s*[°˚]?C)\d+\s*[°˚]?[FC]?/i,
+    pattern: /water\s+(?:will\s+)?freezes?\s+at\s+(?!32\s*°?F|0\s*°?C)[-]?\d+\s*°?[FC]?/i,
     correction: "Water freezes at 32°F (0°C)",
     explanation: "Water freezes at 32 degrees Fahrenheit (0 degrees Celsius) under normal atmospheric pressure."
   },
   {
-    pattern: /water boils at (?!212\s*[°˚]?F|100\s*[°˚]?C)\d+\s*[°˚]?[FC]?/i,
+    pattern: /water\s+(?:will\s+)?boils?\s+at\s+(?!212\s*°?F|100\s*°?C)[-]?\d+\s*°?[FC]?/i,
     correction: "Water boils at 212°F (100°C)",
     explanation: "Water boils at 212 degrees Fahrenheit (100 degrees Celsius) under normal atmospheric pressure at sea level."
   }
 ];
-
-// Scientific facts patterns
-const scientificFacts = {
-  temperature: /\b(?:temperature|degrees?|[°˚][FC])\b/i,
-  physics: /\b(?:gravity|speed of light|mass|energy)\b/i,
-  chemistry: /\b(?:element|compound|reaction|molecule)\b/i,
-};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -59,15 +52,16 @@ serve(async (req) => {
     
     // First check for known falsehoods
     for (const falsehood of knownFalsehoods) {
+      console.log('Testing pattern:', falsehood.pattern);
       if (falsehood.pattern.test(text)) {
         console.log('Found falsehood match:', falsehood.correction);
+        const result = {
+          correction: falsehood.correction,
+          explanation: falsehood.explanation
+        };
+        console.log('Sending correction:', result);
         return new Response(
-          JSON.stringify({
-            result: JSON.stringify({
-              correction: falsehood.correction,
-              explanation: falsehood.explanation
-            })
-          }), 
+          JSON.stringify({ result: JSON.stringify(result) }), 
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

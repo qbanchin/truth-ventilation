@@ -4,6 +4,7 @@ import type { Comment } from "@/lib/supabase";
 
 export const factCheckTruth = async (text: string) => {
   try {
+    console.log('Sending text for fact check:', text);
     const { data, error } = await supabase.functions.invoke('fact-check', {
       body: { text }
     });
@@ -13,6 +14,7 @@ export const factCheckTruth = async (text: string) => {
       return null;
     }
 
+    console.log('Fact check result:', data.result);
     return data.result;
   } catch (error) {
     console.error('Error fact-checking truth:', error);
