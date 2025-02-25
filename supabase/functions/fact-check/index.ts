@@ -27,13 +27,25 @@ const knownFalsehoods = [
     pattern: /covid.*(hoax|fake)/i,
     correction: "COVID-19 is a real and serious disease",
     explanation: "COVID-19 is a well-documented infectious disease that has affected millions worldwide, backed by extensive scientific research and medical evidence."
+  },
+  // Adding water temperature facts
+  {
+    pattern: /water freezes at (?!32\s*[°˚]?F|0\s*[°˚]?C)\d+\s*[°˚]?[FC]?/i,
+    correction: "Water freezes at 32°F (0°C)",
+    explanation: "Water freezes at 32 degrees Fahrenheit (0 degrees Celsius) under normal atmospheric pressure."
+  },
+  {
+    pattern: /water boils at (?!212\s*[°˚]?F|100\s*[°˚]?C)\d+\s*[°˚]?[FC]?/i,
+    correction: "Water boils at 212°F (100°C)",
+    explanation: "Water boils at 212 degrees Fahrenheit (100 degrees Celsius) under normal atmospheric pressure at sea level."
   }
 ];
 
-const misinformationPatterns = {
-  conspiracy: /illuminati|new world order|chemtrails|mind control|5g causes|controlled by aliens/i,
-  medical: /cure.{1,20}(cancer|diabetes|aids)|natural remedy|miracle cure|healing crystal/i,
-  historical: /holocaust.*(fake|hoax)|moon landing.*(fake|hoax)|9\/11.*(inside job|conspiracy)/i,
+// Scientific facts patterns
+const scientificFacts = {
+  temperature: /\b(?:temperature|degrees?|[°˚][FC])\b/i,
+  physics: /\b(?:gravity|speed of light|mass|energy)\b/i,
+  chemistry: /\b(?:element|compound|reaction|molecule)\b/i,
 };
 
 serve(async (req) => {
@@ -43,10 +55,12 @@ serve(async (req) => {
 
   try {
     const { text } = await req.json();
+    console.log('Checking text:', text);
     
     // First check for known falsehoods
     for (const falsehood of knownFalsehoods) {
       if (falsehood.pattern.test(text)) {
+        console.log('Found falsehood match:', falsehood.correction);
         return new Response(
           JSON.stringify({
             result: JSON.stringify({
@@ -59,22 +73,8 @@ serve(async (req) => {
       }
     }
 
-    // Check for general misinformation patterns
-    for (const [category, pattern] of Object.entries(misinformationPatterns)) {
-      if (pattern.test(text)) {
-        return new Response(
-          JSON.stringify({
-            result: JSON.stringify({
-              correction: "This content contains potential misinformation",
-              explanation: `This statement contains claims commonly associated with ${category} misinformation. Please verify with reliable sources.`
-            })
-          }), 
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-
     // If no issues found, return VERIFIED
+    console.log('No issues found, marking as VERIFIED');
     return new Response(
       JSON.stringify({
         result: "VERIFIED"
